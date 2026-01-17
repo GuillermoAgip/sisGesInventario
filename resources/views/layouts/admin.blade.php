@@ -151,6 +151,59 @@
         line-height: 1;
         font-weight: 600;
       }
+      /* Línea y aire */
+.app-sidebar{ border-right: 1px solid rgba(255,255,255,.08); }
+.app-sidebar .sidebar-brand{ border-bottom: 1px solid rgba(255,255,255,.10); }
+
+/* Menú: pill + hover */
+.app-sidebar .nav.sidebar-menu > .nav-item > .nav-link{
+  border-radius: .7rem;
+  margin: .15rem .5rem;
+  padding: .55rem .75rem;
+  color: rgba(255,255,255,.80);
+}
+.app-sidebar .nav.sidebar-menu > .nav-item > .nav-link:hover{
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.95);
+}
+.app-sidebar .nav-link.active{
+  background: rgba(13,110,253,.20);
+  border: 1px solid rgba(13,110,253,.35);
+  color: #fff !important;
+}
+
+/* Submenú más fino */
+.app-sidebar .nav-treeview .nav-link{
+  border-radius: .6rem;
+  margin: .10rem .5rem;
+  padding: .45rem .75rem;
+  color: rgba(255,255,255,.70);
+}
+.app-sidebar .nav-treeview .nav-link:hover{
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.92);
+}
+
+/* Search (si usas form-control-sidebar / btn-sidebar) */
+.form-control-sidebar, .btn-sidebar{
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: rgba(255,255,255,.9) !important;
+}
+.form-control-sidebar::placeholder{ color: rgba(255,255,255,.55) !important; }
+/* Active más limpio (sin borde raro) */
+.app-sidebar .nav-link.active{
+  border: 0 !important;
+  background: rgba(13,110,253,.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(13,110,253,.35);
+}
+
+/* En submenú, active un poco más suave */
+.app-sidebar .nav-treeview .nav-link.active{
+  background: rgba(255,255,255,.08) !important;
+  box-shadow: none;
+}
+
     </style>
   </head>
   <!--end::Head-->
@@ -260,12 +313,13 @@
       <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
   <div class="sidebar-inner">
     <!--begin::Sidebar Brand-->
-    <div class="sidebar-brand">
-      <a href="{{ route('admin.dashboard') }}" class="brand-link">
-        <img src="{{ asset('uploads/logo/logoGesI.png') }}" alt="Logo" class="brand-image opacity-75 shadow" />
-        <span class="brand-text fw-light">GesInventario</span>
-      </a>
-    </div>
+    <div class="sidebar-brand px-3">
+  <a href="{{ route('admin.dashboard') }}" class="brand-link d-flex align-items-center gap-2 py-3">
+    <img src="{{ asset('uploads/logo/logoGesI.png') }}" class="brand-image shadow" alt="Logo">
+    <span class="brand-text">GesInventario</span>
+  </a>
+</div>
+
     <!--end::Sidebar Brand-->
 
     {{-- USER PANEL --}}
@@ -293,17 +347,14 @@
 
     {{-- SIDEBAR SEARCH (estilo AdminLTE) --}}
     <div class="px-3 mt-2">
-      <div class="input-group input-group-sm">
-        <span class="input-group-text border-0 bg-body-tertiary">
-          <i class="bi bi-search"></i>
-        </span>
-        <input class="form-control border-0 bg-body-tertiary"
-               type="search"
-               placeholder="Buscar menú..."
-               aria-label="Buscar menú">
-      </div>
-      <div class="border-bottom border-secondary opacity-25 mt-2"></div>
+  <div class="form-inline">
+    <div class="input-group input-group-sm" data-widget="sidebar-search">
+      <input class="form-control form-control-sidebar" type="search" placeholder="Buscar menú..." aria-label="Buscar menú">
+      <button class="btn btn-sidebar" type="button"><i class="bi bi-search"></i></button>
     </div>
+  </div>
+</div>
+
 
     @php
       // Abrir padres automáticamente según ruta actual
@@ -317,13 +368,14 @@
     <div class="sidebar-wrapper">
       <nav class="mt-2">
         <ul
-          class="nav sidebar-menu flex-column"
-          data-lte-toggle="treeview"
-          role="navigation"
-          aria-label="Main navigation"
-          data-accordion="false"
-          id="navigation"
-        >
+  class="nav sidebar-menu flex-column"
+  data-lte-toggle="treeview"
+  role="navigation"
+  aria-label="Main navigation"
+  data-accordion="false"
+  id="sidebarMenu"
+>
+
           <li class="nav-item">
             <a href="{{ route('admin.dashboard') }}"
                class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -522,6 +574,71 @@
         });
       });
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.querySelector('.form-control-sidebar');
+  const menu  = document.getElementById('sidebarMenu');
+
+  if (!input || !menu) return;
+
+  // Solo enlaces (items reales)
+  const links = Array.from(menu.querySelectorAll('a.nav-link'));
+
+  // Quita highlights viejos
+  const clearState = () => {
+    links.forEach(a => {
+      a.closest('li.nav-item')?.classList.remove('menu-open');
+      a.closest('li.nav-item')?.style.removeProperty('display');
+    });
+    // Mostrar todos los li
+    Array.from(menu.querySelectorAll('li.nav-item')).forEach(li => li.style.display = '');
+  };
+
+  const openParents = (a) => {
+    let ul = a.closest('ul');
+    while (ul && ul !== menu) {
+      const parentLi = ul.closest('li.nav-item');
+      if (parentLi) parentLi.classList.add('menu-open');
+      ul = parentLi ? parentLi.closest('ul') : null;
+    }
+  };
+
+  const apply = () => {
+    const term = (input.value || '').trim().toLowerCase();
+
+    if (!term) {
+      clearState();
+      return;
+    }
+
+    // Ocultar todo primero
+    Array.from(menu.querySelectorAll('li.nav-item')).forEach(li => li.style.display = 'none');
+
+    // Mostrar coincidencias + sus padres
+    links.forEach(a => {
+      const text = (a.textContent || '').trim().toLowerCase();
+      if (!text.includes(term)) return;
+
+      const li = a.closest('li.nav-item');
+      if (li) li.style.display = '';
+
+      // Mostrar todos los padres (li) y abrirlos
+      let parent = li?.parentElement;
+      while (parent && parent !== menu) {
+        const parentLi = parent.closest('li.nav-item');
+        if (parentLi) parentLi.style.display = '';
+        parent = parentLi ? parentLi.parentElement : null;
+      }
+
+      openParents(a);
+    });
+  };
+
+  input.addEventListener('input', apply);
+});
+</script>
+
+
 
     @stack('scripts')
     <!--end::Script-->
