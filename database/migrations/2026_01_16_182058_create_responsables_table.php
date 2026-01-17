@@ -16,10 +16,6 @@ return new class extends Migration
             $table->string('nombre_responsable', 100);
             $table->string('apellidos_responsable', 100);
             $table->string('cargo_responsable', 50)->nullable();
-            
-            $table->unsignedBigInteger('idarea')->nullable();
-            $table->foreign('idarea')->references('id_area')->on('area')                               
-                ->onDelete('set null');
         });
     }
 

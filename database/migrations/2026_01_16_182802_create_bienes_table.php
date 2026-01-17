@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('bien', function (Blueprint $table) {
             $table->id('id_bien');
             $table->string('codigo_patrimonial', 20)->nullable();
+            $table->unique('codigo_patrimonial');
             $table->string('denominacion_bien', 100)->nullable();
+            
             $table->unsignedBigInteger('id_tipobien');
             $table->foreign('id_tipobien')->references('id_tipo_bien')->on('tipo_bien')
                 ->onDelete('set null');
@@ -24,8 +26,8 @@ return new class extends Migration
             $table->string('color_bien', 20)->nullable();
             $table->string('dimensiones_bien', 100)->nullable();
             $table->string('nserie_bien', 20)->nullable();
-            $table->date('fecha_registro')->nullable();
             $table->string('foto_bien', 255)->nullable();
+            $table->timestamps();
         });
     }
 
